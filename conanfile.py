@@ -47,7 +47,7 @@ class mysqlcppconnRecipe(ConanFile):
         self.requires("lz4/1.9.4", visible=True, force=True, libs=True)
         self.requires("openssl/3.2.2", visible=True, force=True, libs=True)
         self.requires("boost/1.85.0", visible=True, force=True, libs=True)
-        # self.requires("libmysqlclient/8.1.0", libs=True)
+        self.requires("libmysqlclient/8.1.0")
     
     def source(self):
         get(self, "https://github.com/mysql/mysql-connector-cpp/archive/refs/tags/9.0.0.zip", strip_root=True)
@@ -62,14 +62,39 @@ class mysqlcppconnRecipe(ConanFile):
 
     def layout(self):
         cmake_layout(self)
+        
+    def _package_folder_dep(self, dep):
+        return self.dependencies[dep].package_folder.replace("\\", "/")
+
+    def _include_folder_dep(self, dep):
+        return self.dependencies[dep].cpp_info.includedirs[0].replace("\\", "/")
+
+    def _lib_folder_dep(self, dep):
+        return self.dependencies[dep].cpp_info.libdirs[0].replace("\\", "/")
     
     def generate(self):
         tc = CMakeToolchain(self)
-        tc.variables["BUILD_SHARED_LIBS"] = False
+
+        # MySQL patches
+        tc.preprocessor_definitions["WITH_LZ4"] = "bundled"
+        tc.cache_variables["WITH_LZ4"] = "bundled"
+        tc.variables["WITH_LZ4"] = "bundled"
+
+        # Boost patches
+        tc.variables["Boost_INCLUDE_DIRS"] = self._include_folder_dep("boost")
+        tc.variables["Boost_LIB_DIRS"] = self._lib_folder_dep("boost")
+        tc.preprocessor_definitions["WITH_BOOST"] = self._package_folder_dep("boost")
+        tc.cache_variables["WITH_BOOST"] = self._package_folder_dep("boost")
+
+        tc.cache_variables["BUILD_SHARED_LIBS"] = "OFF"
+        tc.cache_variables["BUILD_STATIC"] = "ON"
+
         tc.generate()
 
     def build(self):
         cmake = CMake(self)
+        cmake.parallel = True
+        cmake.verbose = True
         cmake.configure()
         cmake.build()
 
@@ -80,7 +105,7 @@ class mysqlcppconnRecipe(ConanFile):
     def package_info(self):
         self.cpp_info.libdirs = ["lib", "lib64"]
         self.cpp_info.includedirs = ["include"]
-        if not self.options.shared:
+        if self.options.shared:
             self.cpp_info.libs = ["mysqlcppconnx"]
         else:
             self.cpp_info.libs = ["mysqlcppconnx-static"]

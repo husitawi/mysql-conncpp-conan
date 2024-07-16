@@ -7,4 +7,10 @@ find_package(boost REQUIRED)
 # message(STATUS "mysqlcppconn_LIBRARIES=${mysqlcppconn_LIBRARIES}")
 
 add_executable(example src/example.cpp)
-target_link_libraries(example mysqlcppconn::cppconn Boost::boost)
+# Check if Apple
+if (CMAKE_HOST_APPLE)
+    target_link_libraries(example PRIVATE mysqlcppconn::cppconn Boost::boost resolv)
+else()
+    target_link_libraries(example PRIVATE mysqlcppconn::cppconn Boost::boost)
+endif()
+
