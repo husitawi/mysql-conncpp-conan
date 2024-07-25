@@ -36,7 +36,7 @@ class MysqlCppConnRecipe(ConanFile):
         export_conandata_patches(self)
     
     def validate(self):
-        check_min_cppstd(self, "14")
+        check_min_cppstd(self, "17")
     
     def requirements(self):
         self.requires("lz4/1.9.4", force=True)
@@ -73,19 +73,13 @@ class MysqlCppConnRecipe(ConanFile):
         # Random
         tc.cache_variables["BUILD_STATIC"] = not self.options.shared
         tc.cache_variables["BUILD_SHARED_LIBS"] = self.options.shared
-        # OpenSSL patches
-        tc.cache_variables["OPENSSL_USE_STATIC_LIBS"] = "ON"
-        # # LZ4 patches
+        # LZ4 patches
         tc.cache_variables["WITH_LZ4"] = self._package_folder_dep("lz4")
         tc.cache_variables["LZ4_DIR"] = self._package_folder_dep("lz4")
         # Boost patches
         tc.cache_variables["BOOST_DIR"] = self._package_folder_dep("boost")
         # OpenSSL patches
         tc.cache_variables["WITH_SSL"] = self._package_folder_dep("openssl")
-        # set OPENSSL_LIB_DIR
-        tc.cache_variables["OPENSSL_LIB_DIR"] = self._lib_folder_dep("openssl")
-        # Set OPENSSL ROOT DIR
-        tc.cache_variables["OPENSSL_ROOT_DIR"] = self._package_folder_dep("openssl")
         
         tc.generate()
         
