@@ -37,9 +37,6 @@ class MysqlCppConnRecipe(ConanFile):
     
     def validate(self):
         check_min_cppstd(self, "14")
-        
-        # if self.settings.build_type == "Debug":
-            # raise ConanInvalidConfiguration("Debug builds of the library are not available.")
     
     def requirements(self):
         self.requires("lz4/1.9.4", force=True)
@@ -96,8 +93,6 @@ class MysqlCppConnRecipe(ConanFile):
         deps.generate()
         
     def _patch_sources(self):
-        # apply_conandata_patches(self)
-        
         if not self.options.shared and is_msvc(self):
             replace_in_file(self, os.path.join(self.source_folder, "install_layout.cmake"),
                                 "set(LIB_NAME_STATIC \"${LIB_NAME}-mt\")",
@@ -137,8 +132,11 @@ class MysqlCppConnRecipe(ConanFile):
             self.output.info(f"VS Version: {vs_version}")
             self.vs_version = vs_version
             self.vs = f"vs{vs_version}"
+        else:
+            self.vs = ""
         
-        self.cpp_info.libdirs = ["lib/vs14", "lib/debug/vs14", "lib64/vs14", "lib64/debug/vs14"]
+        template_libdirs = ["lib", "lib/debug", "lib64", "lib64/debug"]
+        self.cpp_info.libdirs = [f"{lib}/{self.vs}" for lib in template_libdirs]
         self.cpp_info.bindirs = ["lib64", "lib64/debug", "lib", "lib/debug"]
         
         if is_apple_os(self):
