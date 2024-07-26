@@ -145,7 +145,8 @@ class MysqlCppConnRecipe(ConanFile):
             target += "-debug"
             target_alias += "-debug"
         
-        self.cpp_info.set_property("cmake_target_name", f"mysql::{target}")
+        # self.cpp_info.set_property("cmake_target_name", f"mysql::{target}")
+        self.cpp_info.set_property("cmake_target_name", f"mysql::concpp")
         self.cpp_info.set_property("cmake_target_aliases", [f"mysql::{target_alias}"] )
         
         lib = "mysqlcppconnx" if self.options.shared else "mysqlcppconnx-static"
